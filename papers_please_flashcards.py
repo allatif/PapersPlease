@@ -15,12 +15,19 @@ WHITE = 255, 255, 255
 BLACK = 0, 0, 0
 BRGRAY = 196, 196, 196
 DKGRAY = 50, 50, 50
+
 RED = 239, 33, 33
 GREEN = 9, 186, 24
-BLUE = 70, 130, 240
+BLUE = 18, 122, 177
+
+GRLILA = 54, 46, 66
+DKLILA = 33, 29, 41
 
 # Frames Per Second
 FPS = 60
+
+# Font
+FONT = 'font/TragicMarker.otf'
 
 # Flashcard Deck
 deck = {
@@ -41,14 +48,21 @@ clock = pg.time.Clock()
 
 class Desk:
 
-    def __init__(self):
-        self.__image = pg.image.load('image/desktop_bg.png').convert()
+    def __init__(self, load_image=True):
+        self.__image = None
+        if load_image:
+            self.__image = pg.image.load('image/desktop_bg.png').convert()
         self.__rect = pg.Rect(0, 0, WIDTH, HEIGHT)
         self.__setup = False
 
     def blit_to_screen(self):
-        screen.blit(self.__image, self.__rect)
+        if self.__image is not None:
+            screen.blit(self.__image, self.__rect)
+        else:
+            screen.fill(DKLILA)
         if self.__setup:
+            if self.__image is None:
+                self.hole.blit_to_screen()
             self.dashed_line.blit_to_screen()
             self.field_green.blit_to_screen()
             self.field_red.blit_to_screen()
@@ -58,7 +72,10 @@ class Desk:
         if y + flds_h >= HEIGHT//2:
             flds_pos = x, HEIGHT//2 - flds_h
         self.__setup = True
+        self.hole = DropArea(sep_x_pos, BLACK)
         self.dashed_line = Seperator(sep_x_pos, WHITE, 3, 50)
+        if self.__image is None:
+            self.dashed_line = Seperator(sep_x_pos, GRLILA, 3, 50)
         self.field_green = Field(flds_pos, flds_h, GREEN, 3)
         self.field_red = Field(*Desk.mirror(flds_pos, flds_h), RED, 3)
 
@@ -107,6 +124,16 @@ class Seperator:
                 [self.__x, i*(self.__length+self.__gap)],
                 [self.__x, i*(self.__length+self.__gap) + self.__length],
                 self.__width)
+
+
+class DropArea:
+
+    def __init__(self, x, color=BLACK):
+        self.__color = color
+        self.__rect = pg.Rect(x, 0, WIDTH - x, HEIGHT)
+
+    def blit_to_screen(self):
+        pg.draw.rect(screen, self.__color, self.__rect)
 
 
 class Field:
@@ -171,7 +198,7 @@ class Flashcard:
     rot_angles = {'green': [], 'red': []}
     fallen_card_locs = []
     repeat_list = []
-    fwd_learning = True
+    fwd_learning = False
     done = False
     redo = False
 
@@ -327,12 +354,12 @@ class Flashcard:
         margin = 25, 46 + tweak
         h = 17 * scale  # line-height in pxl
         w = 31 // scale  # maximum line-length in characters
-        font = pg.font.Font('font/TragicMarker.otf', 18*scale)
+        font = pg.font.Font(FONT, 18*scale)
 
         if self.shrinked:
             margin = 10, 17 + tweak
             h = 6 * scale
-            font = pg.font.Font('font/TragicMarker.otf', 8*scale - tweak)
+            font = pg.font.Font(FONT, 8*scale - tweak)
 
         if not self.is_flipping:
             textl = text.split('\n')
@@ -361,7 +388,7 @@ class Flashcard:
                 self.print(self.content[0].upper() + ":\n\n"
                            + "- " + self.content[1][0] + "\n"
                            + "- " + self.content[1][1] + "\n"
-                           + "- " + self.content[1][2], GREEN)
+                           + "- " + self.content[1][2], BLACK)
                 # for i, element in enumerate(self.content[1]):
                 #     self.print('- ' + element, line=i+2)
         else:
@@ -427,7 +454,7 @@ def main():
     running = True
     time = 0
 
-    desktop = Desk()
+    desktop = Desk(load_image=True)
     desktop.set_up(sep_x_pos=325, flds_pos=(335, 15), flds_h=100)
 
     deck_content = Flashcard.get_list_from_dict(deck, shuffling=True)
