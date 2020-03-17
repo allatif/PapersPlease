@@ -30,14 +30,14 @@ FPS = 60
 FONT = 'font/TragicMarker.otf'
 
 # Flashcard Deck
-deck = {
+DECK = {
     "ARSTOTZKA": ["Orwetsch", "Ost-Grestin", "Paradisna"],
     "ANTEGRIA": ["St. Marmero", "Glorian", "Gross-Grouse"],
     "IMPOR": ["Enkyo", "Haihan", "Tsunkeido"],
     "KOLECHIEN": ["Jurko-Stadt", "Wedor", "West-Grestin"],
     "OBRISTAN": ["Skal", "Lorndas", "Mergerous"],
     "REPUBLIEN": ["Glorian Major", "Lesrenadi", "Bostan"],
-    "V. FOERDERATION": ["Great Rapid", "Shingleton", "Korstia-Stadt"],
+    "V. FOERDERATION": ["Great Rapid", "Shingleton", "Korista-Stadt"],
 }
 
 pg.init()
@@ -64,8 +64,7 @@ class Desk:
             if self.__image is None:
                 self.hole.blit_to_screen()
                 self.pattern.blit_to_screen()
-            else:
-                self.dashed_line.blit_to_screen()
+            self.dashed_line.blit_to_screen()
             self.field_green.blit_to_screen()
             self.field_red.blit_to_screen()
 
@@ -221,7 +220,7 @@ class Flashcard:
     rot_angles = {'green': [], 'red': []}
     fallen_card_locs = []
     repeat_list = []
-    fwd_learning = False
+    fwd_learning = True
     done = False
     redo = False
 
@@ -403,8 +402,8 @@ class Flashcard:
                 line += 1
 
     def print_content(self):
-        question = "Which locations belong to\n"
         if Flashcard.fwd_learning:
+            question = "Which locations belong to\n"
             if not self.flipside:
                 self.print(question + self.content[0] + "?\n")
             else:
@@ -415,8 +414,9 @@ class Flashcard:
                 # for i, element in enumerate(self.content[1]):
                 #     self.print('- ' + element, line=i+2)
         else:
+            question = "What country is the city of\n"
             if not self.flipside:
-                self.print(self.content[0], size='large', line=1)
+                self.print(question + self.content[0] + " in?\n")
             else:
                 self.print(self.content[1].upper(), RED, size='large', line=1)
 
@@ -457,17 +457,25 @@ class Flashcard:
             rot_image = pg.transform.rotate(image, angle)
             screen.blit(rot_image, [rect[0]+10, rect[1]-10, rect[2], rect[3]])
 
+    @classmethod
+    def set_learning_direction(clc, direction='forward'):
+        if direction == 'forward':
+            clc.fwd_learning = True
+        elif direction == 'backward':
+            clc.fwd_learning = False
+
     @staticmethod
-    def get_list_from_dict(d, shuffling=False):
+    def get_list_from_dict(d, learn_only, shuffling=False):
         lst = []
         for key, value in d.items():
-            if Flashcard.fwd_learning:
-                content = [key.lower().title(), value]
-                lst.append(content)
-            else:
-                for element in value:
-                    content = [element, key.lower().title()]
+            if key in learn_only:
+                if Flashcard.fwd_learning:
+                    content = [key.lower().title(), value]
                     lst.append(content)
+                else:
+                    for element in value:
+                        content = [element, key.lower().title()]
+                        lst.append(content)
         if shuffling:
             shuffle(lst)
         return lst
@@ -480,7 +488,10 @@ def main():
     desktop = Desk(load_image=False)
     desktop.set_up(sep_x_pos=325, flds_pos=(335, 15), flds_h=100)
 
-    deck_content = Flashcard.get_list_from_dict(deck, shuffling=True)
+    Flashcard.set_learning_direction('backward')
+    learn_only = ["ARSTOTZKA", "ANTEGRIA", "KOLECHIEN"]
+    deck_content = Flashcard.get_list_from_dict(DECK, learn_only,
+                                                shuffling=True)
 
     for content in deck_content:
         Flashcard.deck.append(Flashcard(content))
