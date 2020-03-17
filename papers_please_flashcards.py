@@ -366,7 +366,7 @@ class Flashcard:
         self.__pos = WIDTH + 1, HEIGHT + 1
         Flashcard.done = True
 
-    def print(self, text, color=BLUE, size='normal', line=0):
+    def print(self, text, color=BLUE, size='normal', horcenter=False, line=0):
         scale = 1
         tweak = 0
         if size == 'large':
@@ -384,21 +384,31 @@ class Flashcard:
             font = pg.font.Font(FONT, 8*scale - tweak)
 
         if not self.is_flipping:
-            textl = text.split('\n')
-            textf = ''
-            for part in textl:
-                for c in range(len(part), w):
-                    part = part + ' '
-                textf = textf + part
+            textlines = text.split('\n')
+            textlines_w = []
 
-            lines = round(len(textf)/w + 0.49)  # add 0.49 to provoke round up
+            for textline in textlines:
+                if len(textline) > w:
+                    chunks = [textline[i:i+w]
+                              for i in range(0, len(textline), w)]
+                    for chunk in chunks:
+                        textlines_w.append(chunk)
+                else:
+                    textlines_w.append(textline)
 
-            for l in range(0, lines):
-                text_surf = font.render(textf[l*w: (l+1)*w], True, color)
-                screen.blit(text_surf,
-                            [(self.__rect[0] + margin[0],
-                              self.__rect[1] + margin[1] + line*h),
-                             text_surf.get_rect().size])
+            for textline_w in textlines_w:
+                text_surf = font.render(textline_w, True, color)
+
+                if horcenter:
+                    center = (self.__rect[0] + self.__size[0]//2,
+                              self.__rect[1] + margin[1] + line*h)
+                    rect = text_surf.get_rect(center=center)
+                    screen.blit(text_surf, rect)
+                else:
+                    screen.blit(text_surf,
+                                [(self.__rect[0] + margin[0],
+                                  self.__rect[1] + margin[1] + line*h),
+                                 text_surf.get_rect().size])
                 line += 1
 
     def print_content(self):
@@ -418,7 +428,8 @@ class Flashcard:
             if not self.flipside:
                 self.print(question + self.content[0] + " in?\n")
             else:
-                self.print(self.content[1].upper(), RED, size='large', line=1)
+                self.print(self.content[1].upper(), RED, size='large',
+                           horcenter=True, line=1)
 
     def __repr__(self):
         if Flashcard.fwd_learning:
@@ -488,7 +499,9 @@ def main():
     desktop = Desk(load_image=False)
     desktop.set_up(sep_x_pos=325, flds_pos=(335, 15), flds_h=100)
 
-    Flashcard.set_learning_direction('backward')
+    Flashcard.set_learning_direction('forward')
+    # "ARSTOTZKA" "ANTEGRIA" "IMPOR" "KOLECHIEN"
+    # "OBRISTAN" "REPUBLIEN" "V. FOERDERATION"
     learn_only = ["ARSTOTZKA", "ANTEGRIA", "KOLECHIEN"]
     deck_content = Flashcard.get_list_from_dict(DECK, learn_only,
                                                 shuffling=True)
