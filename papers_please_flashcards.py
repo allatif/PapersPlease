@@ -63,7 +63,9 @@ class Desk:
         if self.__setup:
             if self.__image is None:
                 self.hole.blit_to_screen()
-            self.dashed_line.blit_to_screen()
+                self.pattern.blit_to_screen()
+            else:
+                self.dashed_line.blit_to_screen()
             self.field_green.blit_to_screen()
             self.field_red.blit_to_screen()
 
@@ -73,9 +75,8 @@ class Desk:
             flds_pos = x, HEIGHT//2 - flds_h
         self.__setup = True
         self.hole = DropArea(sep_x_pos, BLACK)
+        self.pattern = Pattern(2, 12, sep_x_pos, GRLILA)
         self.dashed_line = Seperator(sep_x_pos, WHITE, 3, 50)
-        if self.__image is None:
-            self.dashed_line = Seperator(sep_x_pos, GRLILA, 3, 50)
         self.field_green = Field(flds_pos, flds_h, GREEN, 3)
         self.field_red = Field(*Desk.mirror(flds_pos, flds_h), RED, 3)
 
@@ -124,6 +125,28 @@ class Seperator:
                 [self.__x, i*(self.__length+self.__gap)],
                 [self.__x, i*(self.__length+self.__gap) + self.__length],
                 self.__width)
+
+
+class Pattern:
+
+    def __init__(self, size, distance, spread_x, color):
+        self.__size = size
+        self.__distance = distance
+        self.__spread_x = spread_x
+        self.__color = color
+
+    def blit_to_screen(self):
+        pos_x = 0
+        pos_y = self.__distance
+        while True:
+            pos_x += self.__distance
+            if pos_x >= self.__spread_x - (self.__distance//2):
+                pos_x = self.__distance
+                pos_y += self.__distance
+                if pos_y >= HEIGHT:
+                    break
+            rect = (pos_x, pos_y, self.__size, self.__size)
+            pg.draw.rect(screen, self.__color, rect)
 
 
 class DropArea:
@@ -316,7 +339,7 @@ class Flashcard:
         self.__shadow_offset = 8  # it's virtually the shadow thickness
         s = pg.Surface((self.__size))
         s.set_alpha(160)
-        s.fill(DKGRAY)
+        s.fill(BLACK)
 
         if self.shrinked:
             self.__shadow_offset = 2
@@ -454,7 +477,7 @@ def main():
     running = True
     time = 0
 
-    desktop = Desk(load_image=True)
+    desktop = Desk(load_image=False)
     desktop.set_up(sep_x_pos=325, flds_pos=(335, 15), flds_h=100)
 
     deck_content = Flashcard.get_list_from_dict(deck, shuffling=True)
