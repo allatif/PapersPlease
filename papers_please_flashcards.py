@@ -42,7 +42,7 @@ DECK = {
 
 pg.init()
 
-screen = pg.display.set_mode([WIDTH, HEIGHT])
+SCREEN = pg.display.set_mode([WIDTH, HEIGHT])
 clock = pg.time.Clock()
 
 
@@ -57,9 +57,9 @@ class Desk:
 
     def blit_to_screen(self):
         if self.__image is not None:
-            screen.blit(self.__image, self.__rect)
+            SCREEN.blit(self.__image, self.__rect)
         else:
-            screen.fill(DKLILA)
+            SCREEN.fill(DKLILA)
         if self.__setup:
             if self.__image is None:
                 self.hole.blit_to_screen()
@@ -119,7 +119,7 @@ class Seperator:
     def blit_to_screen(self):
         for i in range(0, self.__splits):
             pg.draw.line(
-                screen,
+                SCREEN,
                 self.__color,
                 [self.__x, i*(self.__length+self.__gap)],
                 [self.__x, i*(self.__length+self.__gap) + self.__length],
@@ -145,7 +145,7 @@ class Pattern:
                 if pos_y >= HEIGHT:
                     break
             rect = (pos_x, pos_y, self.__size, self.__size)
-            pg.draw.rect(screen, self.__color, rect)
+            pg.draw.rect(SCREEN, self.__color, rect)
 
 
 class DropArea:
@@ -155,7 +155,7 @@ class DropArea:
         self.__rect = pg.Rect(x, 0, WIDTH - x, HEIGHT)
 
     def blit_to_screen(self):
-        pg.draw.rect(screen, self.__color, self.__rect)
+        pg.draw.rect(SCREEN, self.__color, self.__rect)
 
 
 class Field:
@@ -195,7 +195,7 @@ class Field:
             self.__color = color
 
     def blit_to_screen(self):
-        pg.draw.rect(screen, self.__color, self.__rect, self.__width)
+        pg.draw.rect(SCREEN, self.__color, self.__rect, self.__width)
 
     def __repr__(self):
         name = 'field_' + str(self.__num)
@@ -209,7 +209,8 @@ class Flashcard:
     __active_card = None
     __org_image = pg.image.load('image/card.png').convert()
     __small_image = pg.image.load('image/card_small.png').convert()
-    __small_image_deact = pg.image.load('image/card_small_deact.png').convert_alpha()
+    __small_image_deact = pg.image \
+        .load('image/card_small_deact.png').convert_alpha()
     __flip_images = []
     for i in range(1, 18):
         file = "image/flipping/card_flip_" + str(i) + ".png"
@@ -289,7 +290,7 @@ class Flashcard:
         elif animation_clock > animation_time:
             self.is_flipping = False
 
-        screen.blit(self.__image, self.__rect)
+        SCREEN.blit(self.__image, self.__rect)
         Flashcard.__blit_amt += 1
 
         if Flashcard.__blit_amt >= len(Flashcard.deck) + 1:
@@ -344,7 +345,7 @@ class Flashcard:
             self.__shadow_offset = 2
 
         if self.grabbed or self.is_flipping:
-            screen.blit(s, (self.__rect[0] + self.__shadow_offset,
+            SCREEN.blit(s, (self.__rect[0] + self.__shadow_offset,
                             self.__rect[1] + self.__shadow_offset))
 
     def fall(self, determined_pos_x):
@@ -403,9 +404,9 @@ class Flashcard:
                     center = (self.__rect[0] + self.__size[0]//2,
                               self.__rect[1] + margin[1] + line*h)
                     rect = text_surf.get_rect(center=center)
-                    screen.blit(text_surf, rect)
+                    SCREEN.blit(text_surf, rect)
                 else:
-                    screen.blit(text_surf,
+                    SCREEN.blit(text_surf,
                                 [(self.__rect[0] + margin[0],
                                   self.__rect[1] + margin[1] + line*h),
                                  text_surf.get_rect().size])
@@ -428,7 +429,7 @@ class Flashcard:
             if not self.flipside:
                 self.print(question + self.content[0] + " in?\n")
             else:
-                self.print(self.content[1].upper(), RED, size='large',
+                self.print(self.content[1].upper(), BLACK, size='large',
                            horcenter=True, line=1)
 
     def __repr__(self):
@@ -466,7 +467,7 @@ class Flashcard:
         image = cls.__small_image_deact
         for rect, angle in cls.fallen_card_locs:
             rot_image = pg.transform.rotate(image, angle)
-            screen.blit(rot_image, [rect[0]+10, rect[1]-10, rect[2], rect[3]])
+            SCREEN.blit(rot_image, [rect[0]+10, rect[1]-10, rect[2], rect[3]])
 
     @classmethod
     def set_learning_direction(clc, direction='forward'):
@@ -499,10 +500,10 @@ def main():
     desktop = Desk(load_image=False)
     desktop.set_up(sep_x_pos=325, flds_pos=(335, 15), flds_h=100)
 
-    Flashcard.set_learning_direction('forward')
+    Flashcard.set_learning_direction('backward')
     # "ARSTOTZKA" "ANTEGRIA" "IMPOR" "KOLECHIEN"
     # "OBRISTAN" "REPUBLIEN" "V. FOERDERATION"
-    learn_only = ["ARSTOTZKA", "ANTEGRIA", "KOLECHIEN"]
+    learn_only = ["IMPOR", "REPUBLIEN", "V. FOERDERATION", "ANTEGRIA"]
     deck_content = Flashcard.get_list_from_dict(DECK, learn_only,
                                                 shuffling=True)
 
