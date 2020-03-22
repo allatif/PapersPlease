@@ -75,9 +75,9 @@ class Desk:
         self.__setup = True
         self.hole = DropArea(sep_x_pos, BLACK)
         self.pattern = Pattern(2, 12, sep_x_pos, GRLILA)
-        self.dashed_line = Seperator(sep_x_pos, WHITE, 3, 50)
-        self.field_green = Field(flds_pos, flds_h, GREEN, 3)
-        self.field_red = Field(*Desk.mirror(flds_pos, flds_h), RED, 3)
+        self.dashed_line = Seperator(sep_x_pos, 3, 50, WHITE)
+        self.field_green = Field(flds_pos, flds_h, 3, GREEN)
+        self.field_red = Field(*Desk.mirror(flds_pos, flds_h), 3, RED)
 
     @staticmethod
     def mirror(pos, size, axis='x'):
@@ -88,13 +88,13 @@ class Desk:
 
 class Seperator:
 
-    def __init__(self, x, color=WHITE, w=1, spl=1):
+    def __init__(self, x, w=1, spl=1, color=WHITE):
         self.__x = x
         self.__org_x = x
-        self.__color = color
-        self.__org_color = color
         self.__width = w
         self.__splits = spl
+        self.__color = color
+        self.__org_color = color
         self.__gap = 5
         self.__length = round((HEIGHT - self.__gap*(spl-1))/spl + 0.49)
 
@@ -162,10 +162,10 @@ class Field:
 
     num_of_flds = 0
 
-    def __init__(self, pos, h, color=WHITE, w=1):
+    def __init__(self, pos, h, w=1, color=WHITE):
+        self.__width = w
         self.__color = color
         self.__org_color = color
-        self.__width = w
         self.__rect = pg.Rect(pos[0], pos[1], WIDTH - pos[0] - w, h)
         Field.num_of_flds += 1
         self.__num = Field.num_of_flds
